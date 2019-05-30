@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Friend Finder</title>
+    <!-- Latest compiled and minified CSS & JS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <!-- Chosen -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.5.1/chosen.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.5.1/chosen.jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="container content">
+        <br>
+        <h2>Survey Questions</h2>
+        <hr>
+        <h4><strong>About You</strong></h4>
+        <form>
+            <div class="form-group">
+                <h5>Name (Required)</h5>
+                <input id="name" type="text" class="form-control">
+            </div>
+            <div class="form-group">
+                <h5>Photo (Required)</h5>
+                <input id="photo" type="text" class="form-control">
+            </div>
+            <hr>
+            <div id="questions">
+            </div>
+        </form>
+        <div class="text-center">
+            <button id="submitBtn" type="submit" class="btn btn-success btn-lg"><i class="fa fa-check-circle"
+                    aria-hidden="true"></i> Submit</button>
+        </div>
+    </div>
+    <hr>
+    <footer>
+        <div class="container">
+            <a href="/api/friends">API Friends List</a>
+            |
+            <a href="https://github.com/lucy839/FriendFinder.git">GitHub Repo</a>
+            <br>
+        </div>
+    </footer>
+    <div id="result" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><strong>Best Match</strong></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="matchName"></p>
+                    <img id="matchImg" src="https://via.placeholder.com/400x400"
+                        alt="Placeholder image in case user pic doesn't show">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // append questions
+        var questions = ["You are a very tidy person",
+            "You like the outdoors",
+            "You enjoy eatting new foods",
+            "People upset you often",
+            "The rain sucks",
+            "You relate to other easily",
+            "You are sensitive",
+            "You are very punctual",
+            "You respect others views",
+            "You enjoy being in groups."];
+        for (let i in questions) {
+            $("#questions").append(`<h4 id = "questionNum"> Question ${parseInt(i) + 1}:</h4>\
+                <label for="question${i}">${questions[i]}</label>\
+                <br>\
+                <select data-placeholder="" class="chosen-select" id = "q${parseInt(i) + 1}"></select>\   
+                <br><br>\                    
+            `);
+        }
+
+        $(".chosen-select").append(`<option value></option>\
+            <option value="1">1 (Strongly Disagree)</option>\
+            <option value="2">2</option>\
+            <option value="3">3</option>\
+            <option value="4">4</option>\
+            <option value="5">5 (Strongly Agree)</option>\
+         `);
+
+
+        var config = {
+            '.chosen-select': {},
+            '.chosen-select-deselect': {
+                allow_single_deselect: true
+            },
+            '.chosen-select-no-single': {
+                disable_search_threshold: 10
+            },
+            '.chosen-select-no-results': {
+                no_results_text: 'Oops, nothing found!'
+            },
+            '.chosen-select-width': {
+                width: "95%"
+            }
+        }
+        for (var selector in config) {
+            $(selector).chosen(config[selector]);
+        }
+        // Activate submit button
+        $('#submitBtn').on('click', function (event) {
+            event.preventDefault();
+            function validateForm() {
+                let isValid = true;
+                $(".form-control").each(function () {
+                    if ($(this).val() === "") {
+                        isValid = false;
+                    }
+                });
+                $(".chosen-select").each(function () {
+                    if ($(this).val() === "") {
+                        isValid = false;
+                    }
+                });
+                return isValid;
+            }
+
+
+            if (validateForm()) {
+
+                let userInput = {
+                    name: $('#name').val().trim(),
+                    photo: $('#photo').val().trim(),
+                    scores: [
+                        $('#q1').val().trim(),
+                        $('#q2').val().trim(),
+                        $('#q3').val().trim(),
+                        $('#q4').val().trim(),
+                        $('#q5').val().trim(),
+                        $('#q6').val().trim(),
+                        $('#q7').val().trim(),
+                        $('#q8').val().trim(),
+                        $('#q9').val().trim(),
+                        $('#q10').val().trim()
+                    ]
+                };
+
+
+                $.post('/api/friends', userInput)
+                    .then(function (data) {
+                        // Set the name and image values of friend match
+                        console.log(data.name)
+                        $("#matchName").text(data.name);
+                        $('#matchImg').attr("src", data.photo);
+                        // Show the modal with the best match 
+                        $("#result").modal('toggle');
+                    });
+            }
+            else 
+            {
+                alert("You must fill out all questions before submitting!");
+            }
+        });
+    </script>
+</body>
+
+</html>
